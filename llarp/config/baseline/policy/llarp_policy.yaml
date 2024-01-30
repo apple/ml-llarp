@@ -1,0 +1,87 @@
+# @package habitat_baselines.rl.policy.main_agent
+defaults:
+  - _self_
+
+name: "LlmPolicy"
+hierarchical_policy:
+  high_level_policy:
+    name: ""
+    policy_core_type: "CleanLLMPolicyCore"
+    normalize_visual_inputs: False
+    num_rnn_layers: 2
+    # Superset of all observations input to the policy
+    policy_input_keys:
+      # Visual sensors
+      - head_rgb
+      - obs_lang
+    
+    # LLM model
+    use_b16: True
+    load_in_8bit: False
+    use_rope_scaling: False
+
+    # Must be the same as the number of episode steps and the same as ppo.hidden_size
+    context_len: 32
+    rollout_take_ratio: 1.0
+    is_eval_mode: False
+    train_visual_encoder: False
+    train_vis_bridge: True
+    train_action_decoder: True
+    # A value of null means don't load.
+    pretrain_ckpt_path: null
+    prefix_tokens_obs_k: "vocab_lang_goal"
+    use_term_action: False
+
+    remove_prompt_pad_toks: False
+
+    set_llm_eval: False
+    strict_loading: True
+    num_visual_tokens: 1
+    model_parallel_factor: 1
+    use_action_inputs: False
+    debug_mode: False
+
+    critic:
+      _target_: "llarp.policies.llm_policy.LinearCriticHead"
+      use_b16: False
+
+    # No prompting by default.
+    prompts:
+      habitat: ""
+    prompt_suffix: ""
+    tokenizer_id: "data/hf_llama_7B/"
+
+
+    llm_wrapper:
+      peft: False
+      peft_full_att_params: False
+      peft_settings:
+        r: 8
+        lora_alpha: 32 
+        lora_dropout: 0.1
+      _target_: "llarp.policies.utils.DecoderWrapper"
+      use_b16: True
+      llm_id: "data/hf_llama_7B/"
+      model_parallel_factor: 1
+      debug_mode: False
+      force_non_causal: False
+      train_llm: False
+      model_cfg:
+        intermediate_size: 64
+        hidden_size: 64
+        num_hidden_layers: 2
+
+    visual_bridge:
+      _target_: "llarp.policies.vis_bridge.MlpVisBridge"
+      _recursive_: False
+      hidden_size: 4096
+
+    action_decoder:
+      _target_: "llarp.policies.action_decoders.MlpDecoder"
+      hidden_size: 512
+
+    vis_encoder:
+      _target_: "llarp.policies.visual_encoders.Vc1VisualEncoder"
+      use_b16: True
+      classifier_feature: "use_cls_token"
+

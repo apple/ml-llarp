@@ -1,0 +1,12 @@
+# @package _global_
+habitat_baselines:
+  num_environments: 24
+habitat:
+  simulator:
+    create_renderer: True
+    concur_render: False
+    renderer: 
+      enable_batch_renderer: False
+    habitat_sim_v0:
+      enable_gfx_replay_save: False
+

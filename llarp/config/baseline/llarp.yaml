@@ -1,0 +1,69 @@
+# @package _global_
+# This is also the base config for HL policies.
+
+defaults:
+  - /task: language_rearrangement
+  - /habitat_baselines: habitat_baselines_rl_config_base
+  - /baseline/renderer: regular
+  - /baseline/policy@habitat_baselines.rl.policy.main_agent: llarp_policy
+  - /habitat/simulator/sim_sensors@habitat_baselines.eval.extra_sim_sensors.third_rgb_sensor: third_rgb_sensor
+  - _self_
+
+
+habitat_baselines:
+  verbose: False
+  trainer_name: "il_ppo"
+  updater_name: "TransformerPPO"
+  distrib_updater_name: "DistributedTransformerPPO"
+  rollout_storage_name: "TransformerRolloutStorage"
+  evaluator:
+    _target_: llarp.trainer.custom_evaluator.CustomHabitatEvaluator
+  torch_gpu_id: 0
+  video_fps: 30
+  eval_ckpt_path_dir: ""
+  writer_type: 'tb'
+  num_updates: -1
+  total_num_steps: 2.0e8
+  log_interval: 1
+  num_checkpoints: 20
+  num_environments: 8
+  force_torch_single_threaded: True
+  eval_keys_to_include_in_name: ['predicate_task_success', 'task_progress']
+  load_resume_state_config: False
+  vector_env_factory:
+    _target_: "llarp.trainer.custom_env_factory.CustomVectorEnvFactory"
+  on_save_ckpt_callback:
+    _target_: "llarp.run.on_save_ckpt_callback"
+
+  eval:
+    video_option: ["disk"]
+
+  rl:
+    ppo:
+      # PPO params
+      clip_param: 0.2
+      ppo_epoch: 2
+      num_mini_batch: 8
+      value_loss_coef: 0.5
+      entropy_coef: 0.01
+      lr: 3e-4
+      eps: 1e-5
+      max_grad_norm: 0.2
+      num_steps: 32
+      use_gae: True
+      gamma: 0.99
+      tau: 0.95
+      use_double_buffered_sampler: False
+      use_normalized_advantage: False
+      hidden_size: 4096
+
+    ddppo:
+      # DD-PPO sync parameter.
+      sync_frac: 0.6
+      # The PyTorch distributed backend to use
+      distrib_backend: NCCL
+      # Initialize just the visual encoder backbone with pretrained weights
+      pretrained_encoder: False
+      # Whether the visual encoder backbone will be trained.
+      train_encoder: False
+      reset_critic: False
